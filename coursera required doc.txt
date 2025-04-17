@@ -1,0 +1,106 @@
+exp-1 Implement a Java program Use if-then-else construct in Java.
+Software and Hardware Requirement
+1.64-bit machine
+
+2.Windows 8 / Open-Source Operating System.
+3.MySQL Server and Client.
+
+Program:
+import java.util.Scanner;
+	
+public class LargestNumber
+ {
+    public static void main(String[] args) {
+        // Create a scanner object to read input
+        Scanner sc = new Scanner(System.in);
+
+        // Input three numbers
+        System.out.print("Enter the first number (x): ");
+        int x = sc.nextInt();
+        
+        System.out.print("Enter the second number (y): ");
+        int y = sc.nextInt();
+        
+        System.out.print("Enter the third number (z): ");
+        int z = sc.nextInt();
+
+        // Determine the largest number using if-then-else construct
+        if (x >= y && x >= z) {
+            System.out.println(x + " is the largest number.");
+        } else if (y >= x && y >= z) {
+            System.out.println(y + " is the largest number.");
+        } else {
+            System.out.println(z + " is the largest number.");
+        }
+
+        // Close the scanner
+        sc.close();
+    }
+}
+
+
+===================================================================================================
+exp-2  Implement a Java program to Use Equals Ignore Case Method in a String Class.
+Software and Hardware Requirement
+1.64 bit machine
+2.Windows 8 / Open Source Operating System.
+3.MySQL Server and Client.
+
+
+Program:
+public class EqualsIgnoreCase {
+    public static void main(String[] args) {
+        // Define two strings
+        String str1 = "Hello World";
+        String str2 = "hello world";
+
+        // Compare the strings using equalsIgnoreCase
+        if (str1.equalsIgnoreCase(str2)) {
+            System.out.println("The strings are equal (case ignored).");
+        } else {
+            System.out.println("The strings are not equal.");
+        }
+    }
+}
+
+=======================================================================================================
+exp-3-Write a java Program to remove duplicate elements from sorted array ex. 
+ Input:Array={1,2,2,5,6,6,9} result:Array={1,2,5,6,9}.
+
+import java.util.Arrays;
+
+public class RemoveDuplicates {
+    public static void main(String[] args) {
+        // Input array
+        int[] array = {1, 2, 2, 5, 6, 6, 9};
+        
+        // Remove duplicates from sorted array
+        int[] result = removeDuplicates(array);
+        
+        // Print the result
+        System.out.println("Array after removing duplicates: " + Arrays.toString(result));
+    }
+    
+    public static int[] removeDuplicates(int[] array) {
+        // If the array is empty or has only one element, return it as is
+        if (array == null || array.length == 0) {
+            return array;
+        }
+        
+        // Pointer for the next unique element
+        int j = 0;
+        // Loop through the array to identify unique elements
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] != array[j]) {
+                j++;
+                array[j] = array[i];
+            }
+        }
+        
+        // Create a new array of the correct length
+        int[] result = Arrays.copyOf(array, j + 1);
+        
+        return result;
+    }
+}
+===================================================================================================================
