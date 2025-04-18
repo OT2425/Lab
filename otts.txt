@@ -1,0 +1,1713 @@
+1. Develop a system for an online bookstore to manage its catalog using binary search trees (BSTs). Allow operations like adding new books, searching for books by title or author efficiently, and updating book information.
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Book {
+    string title;
+    string author;
+    double price;
+};
+
+struct BSTNode {
+    Book book;
+    BSTNode* left;
+    BSTNode* right;
+    
+    BSTNode(Book b) : book(b), left(nullptr), right(nullptr) {}
+};
+
+class Bookstore {
+private:
+    BSTNode* root;
+
+    BSTNode* insert(BSTNode* node, Book b) {
+        if (!node)
+            return new BSTNode(b);
+
+        if (b.title < node->book.title)
+            node->left = insert(node->left, b);
+        else if (b.title > node->book.title)
+            node->right = insert(node->right, b);
+        else
+            cout << "Book with title \"" << b.title << "\" already exists.\n";
+
+        return node;
+    }
+
+    BSTNode* searchByTitle(BSTNode* node, const string& title) {
+        if (!node || node->book.title == title)
+            return node;
+
+        if (title < node->book.title)
+            return searchByTitle(node->left, title);
+        else
+            return searchByTitle(node->right, title);
+    }
+
+    void searchByAuthor(BSTNode* node, const string& author) {
+        if (!node) return;
+
+        searchByAuthor(node->left, author);
+        if (node->book.author == author)
+            printBook(node->book);
+        searchByAuthor(node->right, author);
+    }
+
+    void printBook(const Book& b) {
+        cout << "Title: " << b.title << ", Author: " << b.author << ", Price: $" << b.price << "\n";
+    }
+
+public:
+    Bookstore() : root(nullptr) {}
+
+    void addBook(const Book& b) {
+        root = insert(root, b);
+    }
+
+    void findBookByTitle(const string& title) {
+        BSTNode* res = searchByTitle(root, title);
+        if (res)
+            printBook(res->book);
+        else
+            cout << "Book not found.\n";
+    }
+
+    void findBooksByAuthor(const string& author) {
+        cout << "Books by " << author << ":\n";
+        searchByAuthor(root, author);
+    }
+
+    void updateBookPrice(const string& title, double newPrice) {
+        BSTNode* res = searchByTitle(root, title);
+        if (res) {
+            res->book.price = newPrice;
+            cout << "Price updated.\n";
+        } else {
+            cout << "Book not found.\n";
+        }
+    }
+};
+
+int main() {
+    Bookstore store;
+    int choice;
+
+    do {
+        cout << "\n--- Online Bookstore Menu ---\n";
+        cout << "1. Add Book\n";
+        cout << "2. Find Book by Title\n";
+        cout << "3. Find Books by Author\n";
+        cout << "4. Update Book Price\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cin.ignore();  // Clear newline
+
+        if (choice == 1) {
+            Book b;
+            cout << "Enter title: ";
+            getline(cin, b.title);
+            cout << "Enter author: ";
+            getline(cin, b.author);
+            cout << "Enter price: ";
+            cin >> b.price;
+            cin.ignore();
+            store.addBook(b);
+
+        } else if (choice == 2) {
+            string title;
+            cout << "Enter title to search: ";
+            getline(cin, title);
+            store.findBookByTitle(title);
+
+        } else if (choice == 3) {
+            string author;
+            cout << "Enter author to search: ";
+            getline(cin, author);
+            store.findBooksByAuthor(author);
+
+        } else if (choice == 4) {
+            string title;
+            double price;
+            cout << "Enter title to update: ";
+            getline(cin, title);
+            cout << "Enter new price: ";
+            cin >> price;
+            cin.ignore();
+            store.updateBookPrice(title, price);
+
+        } else if (choice == 5) {
+            cout << "Exiting program.\n";
+        } else {
+            cout << "Invalid choice. Please try again.\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
+
+=====================================================================================================================================================
+2.C++ program to implement a threaded binary tree and perform five operations on it: insertion, in-order traversal, display.
+
+#include <iostream>
+using namespace std;
+
+struct TBTNode {
+    int data;
+    TBTNode *left, *right;
+    bool lthread, rthread;
+
+    TBTNode(int val) {
+        data = val;
+        left = right = nullptr;
+        lthread = rthread = true;
+    }
+};
+
+class ThreadedBinaryTree {
+private:
+    TBTNode* root;
+
+    TBTNode* insert(TBTNode* root, int key) {
+        TBTNode* ptr = root;
+        TBTNode* par = nullptr;
+
+        while (ptr != nullptr) {
+            if (key == ptr->data) {
+                cout << "Duplicate key not allowed\n";
+                return root;
+            }
+
+            par = ptr;
+
+            if (key < ptr->data) {
+                if (!ptr->lthread)
+                    ptr = ptr->left;
+                else
+                    break;
+            } else {
+                if (!ptr->rthread)
+                    ptr = ptr->right;
+                else
+                    break;
+            }
+        }
+
+        TBTNode* newNode = new TBTNode(key);
+
+        if (par == nullptr) {
+            root = newNode;
+            newNode->left = newNode->right = nullptr;
+        } else if (key < par->data) {
+            newNode->left = par->left;
+            newNode->right = par;
+            par->lthread = false;
+            par->left = newNode;
+        } else {
+            newNode->left = par;
+            newNode->right = par->right;
+            par->rthread = false;
+            par->right = newNode;
+        }
+
+        return root;
+    }
+
+    void inorder(TBTNode* root) {
+        TBTNode* curr = leftmost(root);
+        while (curr != nullptr) {
+            cout << curr->data << " ";
+            if (curr->rthread)
+                curr = curr->right;
+            else
+                curr = leftmost(curr->right);
+        }
+    }
+
+    TBTNode* leftmost(TBTNode* node) {
+        if (!node) return nullptr;
+        while (!node->lthread)
+            node = node->left;
+        return node;
+    }
+
+public:
+    ThreadedBinaryTree() {
+        root = nullptr;
+    }
+
+    void insert(int key) {
+        root = insert(root, key);
+    }
+
+    void displayInOrder() {
+        cout << "In-order traversal: ";
+        inorder(root);
+        cout << "\n";
+    }
+};
+
+// ------ Main -------
+int main() {
+    ThreadedBinaryTree tbt;
+    int choice, val;
+
+    do {
+        cout << "\n--- Threaded Binary Tree Menu ---\n";
+        cout << "1. Insert\n";
+        cout << "2. In-order Traversal\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter value to insert: ";
+                cin >> val;
+                tbt.insert(val);
+                break;
+            case 2:
+                tbt.displayInOrder();
+                break;
+            case 3:
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice!\n";
+        }
+    } while (choice != 3);
+
+    return 0;
+}
+
+=========================================================================================================================
+3.Write a C++ Program to create a height balance tree by taking input from user and perform following operation on it.
+a.	Insertion of a node
+b.	Searching of a node
+c.	Display by using any one traversal method
+
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int key, height;
+    Node* left;
+    Node* right;
+
+    Node(int k) {
+        key = k;
+        height = 1;
+        left = right = nullptr;
+    }
+};
+
+int height(Node* n) {
+    return n ? n->height : 0;
+}
+
+int balanceFactor(Node* n) {
+    return n ? height(n->left) - height(n->right) : 0;
+}
+
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+Node* rightRotate(Node* y) {
+    Node* x = y->left;
+    Node* T2 = x->right;
+    x->right = y;
+    y->left = T2;
+
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    return x;
+}
+
+Node* leftRotate(Node* x) {
+    Node* y = x->right;
+    Node* T2 = y->left;
+    y->left = x;
+    x->right = T2;
+
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+
+    return y;
+}
+
+Node* insert(Node* node, int key) {
+    if (!node) return new Node(key);
+
+    if (key < node->key)
+        node->left = insert(node->left, key);
+    else if (key > node->key)
+        node->right = insert(node->right, key);
+    else
+        return node;
+
+    node->height = 1 + max(height(node->left), height(node->right));
+
+    int balance = balanceFactor(node);
+
+    if (balance > 1 && key < node->left->key)
+        return rightRotate(node);
+
+    if (balance < -1 && key > node->right->key)
+        return leftRotate(node);
+
+    if (balance > 1 && key > node->left->key) {
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
+    }
+
+    if (balance < -1 && key < node->right->key) {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+
+    return node;
+}
+
+bool search(Node* root, int key) {
+    if (!root) return false;
+    if (root->key == key) return true;
+    if (key < root->key) return search(root->left, key);
+    return search(root->right, key);
+}
+
+void inorder(Node* root) {
+    if (root) {
+        inorder(root->left);
+        cout << root->key << " ";
+        inorder(root->right);
+    }
+}
+
+int main() {
+    Node* root = nullptr;
+    int choice, key;
+
+    do {
+        cout << "\n--- AVL Tree Menu ---\n";
+        cout << "1. Insert\n2. Search\n3. Inorder Display\n4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter value to insert: ";
+                cin >> key;
+                root = insert(root, key);
+                break;
+
+            case 2:
+                cout << "Enter value to search: ";
+                cin >> key;
+                if (search(root, key))
+                    cout << "Found\n";
+                else
+                    cout << "Not Found\n";
+                break;
+
+            case 3:
+                cout << "Inorder Traversal: ";
+                inorder(root);
+                cout << "\n";
+                break;
+
+            case 4:
+                cout << "Exiting...\n";
+                break;
+
+            default:
+                cout << "Invalid choice!\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
+
+===============================================================================================================
+4.Write a C++ Program using  Depth First Traversal for a user defined Graph
+
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class Graph {
+private:
+    int V; // Number of vertices
+    vector<vector<int>> adj; // Adjacency list
+
+    void DFSUtil(int v, vector<bool>& visited) {
+        visited[v] = true;
+        cout << v << " ";
+
+        for (int neighbor : adj[v]) {
+            if (!visited[neighbor]) {
+                DFSUtil(neighbor, visited);
+            }
+        }
+    }
+
+public:
+    Graph(int vertices) {
+        V = vertices;
+        adj.resize(V);
+    }
+
+    void addEdge(int src, int dest) {
+        adj[src].push_back(dest);
+        // For undirected graph, also add:
+        // adj[dest].push_back(src);
+    }
+
+    void DFS(int start) {
+        vector<bool> visited(V, false);
+        cout << "DFS starting from vertex " << start << ": ";
+        DFSUtil(start, visited);
+        cout << endl;
+    }
+};
+
+int main() {
+    int V, E;
+    cout << "Enter number of vertices: ";
+    cin >> V;
+
+    Graph g(V);
+
+    cout << "Enter number of edges: ";
+    cin >> E;
+
+    cout << "Enter edges (source destination):\n";
+    for (int i = 0; i < E; ++i) {
+        int src, dest;
+        cin >> src >> dest;
+        g.addEdge(src, dest);
+    }
+
+    int startVertex;
+    cout << "Enter starting vertex for DFS: ";
+    cin >> startVertex;
+
+    g.DFS(startVertex);
+
+    return 0;
+}
+============================================================================================================
+5.Design a program to represent a transportation network using graphs. The program should allow users to input cities and routes between them, and then visualize the network graphically. Additionally, it should support operations like adding new cities and routes and determining the minimum spanning tree of the entire network.  (Using Prims)
+
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <string>
+#include <map>
+#include <queue>
+using namespace std;
+
+class TransportationNetwork {
+private:
+    int V; // Number of cities (vertices)
+    vector<vector<int>> adjMatrix; // Adjacency matrix to represent graph
+    map<int, string> cityNames; // Map to store city names with their indices
+    vector<vector<int>> weightMatrix; // Weight matrix to store route distances
+
+public:
+    TransportationNetwork(int v) {
+        V = v;
+        adjMatrix.resize(v, vector<int>(v, 0));
+        weightMatrix.resize(v, vector<int>(v, INT_MAX));
+    }
+
+    // Function to add city name
+    void addCity(int index, const string& name) {
+        cityNames[index] = name;
+    }
+
+    // Function to add a route between cities with distance
+    void addRoute(int u, int v, int distance) {
+        if (u >= 0 && u < V && v >= 0 && v < V) {
+            adjMatrix[u][v] = 1;
+            adjMatrix[v][u] = 1; // Undirected graph
+            weightMatrix[u][v] = distance;
+            weightMatrix[v][u] = distance; // For undirected graph
+        } else {
+            cout << "Invalid city index. Please try again.\n";
+        }
+    }
+
+    // Function to display the cities in the network
+    void displayCities() {
+        cout << "Cities in the network:\n";
+        for (auto& city : cityNames) {
+            cout << city.first << ": " << city.second << "\n";
+        }
+    }
+
+    // Function to display the transportation routes (adjacency matrix representation)
+    void displayRoutes() {
+        cout << "\nTransportation routes:\n";
+        for (int i = 0; i < V; ++i) {
+            for (int j = 0; j < V; ++j) {
+                if (adjMatrix[i][j]) {
+                    cout << cityNames[i] << " <--> " << cityNames[j]
+                         << " [Distance: " << weightMatrix[i][j] << "]\n";
+                }
+            }
+        }
+    }
+
+    // Function to perform Prim's algorithm and find the Minimum Spanning Tree (MST)
+    void primMST() {
+        if (V == 0) {
+            cout << "No cities in the network. MST cannot be calculated.\n";
+            return;
+        }
+
+        vector<int> parent(V, -1); // To store the MST
+        vector<int> key(V, INT_MAX); // To store the minimum weight edge
+        vector<bool> inMST(V, false); // To check if a node is already in MST
+        key[0] = 0; // Start with the first city (node 0)
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        pq.push({0, 0}); // {key, vertex}
+
+        while (!pq.empty()) {
+            int u = pq.top().second;
+            pq.pop();
+
+            inMST[u] = true;
+
+            // Traverse all the neighbors of u
+            for (int v = 0; v < V; ++v) {
+                if (adjMatrix[u][v] == 1 && !inMST[v] && weightMatrix[u][v] < key[v]) {
+                    key[v] = weightMatrix[u][v];
+                    pq.push({key[v], v});
+                    parent[v] = u;
+                }
+            }
+        }
+
+        // Display MST
+        cout << "\nMinimum Spanning Tree (MST) via Prim's Algorithm:\n";
+        for (int i = 1; i < V; ++i) {
+            if (parent[i] != -1) {
+                cout << cityNames[parent[i]] << " -- " << cityNames[i] << " [Distance: " << weightMatrix[parent[i]][i] << "]\n";
+            }
+        }
+    }
+};
+
+int main() {
+    int numCities, numRoutes;
+    cout << "Enter the number of cities: ";
+    cin >> numCities;
+
+    if (numCities <= 0) {
+        cout << "Number of cities should be greater than 0.\n";
+        return 0;
+    }
+
+    TransportationNetwork network(numCities);
+
+    // Input city names
+    cin.ignore(); // To clear the newline left by cin
+    for (int i = 0; i < numCities; ++i) {
+        string cityName;
+        cout << "Enter city " << i + 1 << " name: ";
+        getline(cin, cityName);
+        network.addCity(i, cityName);
+    }
+
+    // Input routes between cities
+    cout << "\nEnter the number of routes: ";
+    cin >> numRoutes;
+    if (numRoutes < 0) {
+        cout << "Invalid number of routes.\n";
+        return 0;
+    }
+    for (int i = 0; i < numRoutes; ++i) {
+        int u, v, distance;
+        cout << "Enter route (city1 city2 distance): ";
+        cin >> u >> v >> distance;
+        if (u < 0 || u >= numCities || v < 0 || v >= numCities) {
+            cout << "Invalid city indices. Please enter valid cities.\n";
+            --i; // Re-enter the current route
+            continue;
+        }
+        network.addRoute(u, v, distance);
+    }
+
+    // Menu-driven options
+    int choice;
+    do {
+        cout << "\n--- Transportation Network Menu ---\n";
+        cout << "1. Display Cities\n";
+        cout << "2. Display Routes\n";
+        cout << "3. Add New Route\n";
+        cout << "4. Find Minimum Spanning Tree (MST)\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            network.displayCities();
+        } else if (choice == 2) {
+            network.displayRoutes();
+        } else if (choice == 3) {
+            int u, v, distance;
+            cout << "Enter new route (city1 city2 distance): ";
+            cin >> u >> v >> distance;
+            if (u >= 0 && u < numCities && v >= 0 && v < numCities) {
+                network.addRoute(u, v, distance);
+            } else {
+                cout << "Invalid city indices. Please try again.\n";
+            }
+        } else if (choice == 4) {
+            network.primMST();
+        } else if (choice == 5) {
+            cout << "Exiting program.\n";
+        } else {
+            cout << "Invalid choice. Please try again.\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
+====================================================================================================================
+6.Optimal Route Planning Application: Create a route planning application that uses graphs to represent road networks and Dijkstra's algorithm for finding the shortest path between two locations. Allow users to input starting and destination points to get the optimal route.
+
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <queue>
+#include <map>
+#include <string>
+
+using namespace std;
+
+class RoutePlanner {
+private:
+    int V; // Number of cities (vertices)
+    vector<vector<int>> adjMatrix; // Adjacency matrix to represent graph
+    map<int, string> cityNames; // Map to store city names with their indices
+    vector<vector<int>> distanceMatrix; // Distance matrix for weights (roads)
+
+public:
+    RoutePlanner(int v) {
+        V = v;
+        adjMatrix.resize(v, vector<int>(v, 0));
+        distanceMatrix.resize(v, vector<int>(v, INT_MAX));
+    }
+
+    // Function to add city name
+    void addCity(int index, const string& name) {
+        cityNames[index] = name;
+    }
+
+    // Function to add a road between cities with distance
+    void addRoad(int u, int v, int distance) {
+        if (u >= 0 && u < V && v >= 0 && v < V) {
+            adjMatrix[u][v] = 1;
+            adjMatrix[v][u] = 1; // Undirected graph
+            distanceMatrix[u][v] = distance;
+            distanceMatrix[v][u] = distance; // For undirected graph
+        } else {
+            cout << "Invalid city index. Please try again.\n";
+        }
+    }
+
+    // Function to display the cities
+    void displayCities() {
+        cout << "Cities in the network:\n";
+        for (auto& city : cityNames) {
+            cout << city.first << ": " << city.second << "\n";
+        }
+    }
+
+    // Dijkstra's Algorithm to find the shortest path from source to destination
+    void findShortestPath(int start, int end) {
+        if (start == end) {
+            cout << "Start and destination are the same. No need to calculate path.\n";
+            return;
+        }
+
+        vector<int> dist(V, INT_MAX); // Distance from start to each city
+        vector<int> parent(V, -1); // To store the previous city in the path
+        vector<bool> visited(V, false); // To track visited cities
+
+        dist[start] = 0;
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        pq.push({0, start});
+
+        while (!pq.empty()) {
+            int u = pq.top().second;
+            pq.pop();
+
+            // If this city has already been visited, skip it
+            if (visited[u]) continue;
+            visited[u] = true;
+
+            // Check all adjacent cities
+            for (int v = 0; v < V; ++v) {
+                if (adjMatrix[u][v] == 1 && !visited[v] && dist[u] + distanceMatrix[u][v] < dist[v]) {
+                    dist[v] = dist[u] + distanceMatrix[u][v];
+                    pq.push({dist[v], v});
+                    parent[v] = u;
+                }
+            }
+        }
+
+        // Output the shortest path
+        if (dist[end] == INT_MAX) {
+            cout << "No path exists between " << cityNames[start] << " and " << cityNames[end] << ".\n";
+        } else {
+            cout << "Shortest path from " << cityNames[start] << " to " << cityNames[end] << ":\n";
+            printPath(parent, end);
+            cout << "\nTotal distance: " << dist[end] << " units\n";
+        }
+    }
+
+    // Function to print the path from source to destination
+    void printPath(vector<int>& parent, int j) {
+        if (parent[j] == -1) {
+            return;
+        }
+        printPath(parent, parent[j]);
+        cout << cityNames[j] << " ";
+    }
+};
+
+int main() {
+    int numCities, numRoads;
+    cout << "Enter the number of cities: ";
+    cin >> numCities;
+
+    if (numCities <= 0) {
+        cout << "Number of cities should be greater than 0.\n";
+        return 0;
+    }
+
+    RoutePlanner planner(numCities);
+
+    // Input city names
+    cin.ignore(); // To clear the newline left by cin
+    for (int i = 0; i < numCities; ++i) {
+        string cityName;
+        cout << "Enter city " << i + 1 << " name: ";
+        getline(cin, cityName);
+        planner.addCity(i, cityName);
+    }
+
+    // Input roads between cities
+    cout << "\nEnter the number of roads: ";
+    cin >> numRoads;
+    if (numRoads < 0) {
+        cout << "Invalid number of roads.\n";
+        return 0;
+    }
+    for (int i = 0; i < numRoads; ++i) {
+        int u, v, distance;
+        cout << "Enter road (city1 city2 distance): ";
+        cin >> u >> v >> distance;
+        if (u < 0 || u >= numCities || v < 0 || v >= numCities) {
+            cout << "Invalid city indices. Please enter valid cities.\n";
+            --i; // Re-enter the current road
+            continue;
+        }
+        planner.addRoad(u, v, distance);
+    }
+
+    // Menu-driven options
+    int choice;
+    do {
+        cout << "\n--- Route Planning Menu ---\n";
+        cout << "1. Display Cities\n";
+        cout << "2. Add New Road\n";
+        cout << "3. Find Shortest Path between Two Cities\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            planner.displayCities();
+        } else if (choice == 2) {
+            int u, v, distance;
+            cout << "Enter new road (city1 city2 distance): ";
+            cin >> u >> v >> distance;
+            if (u >= 0 && u < numCities && v >= 0 && v < numCities) {
+                planner.addRoad(u, v, distance);
+            } else {
+                cout << "Invalid city indices. Please try again.\n";
+            }
+        } else if (choice == 3) {
+            int start, end;
+            cout << "Enter starting city index: ";
+            cin >> start;
+            cout << "Enter destination city index: ";
+            cin >> end;
+            if (start >= 0 && start < numCities && end >= 0 && end < numCities) {
+                planner.findShortestPath(start, end);
+            } else {
+                cout << "Invalid city indices. Please try again.\n";
+            }
+        } else if (choice == 4) {
+            cout << "Exiting program.\n";
+        } else {
+            cout << "Invalid choice. Please try again.\n";
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
+=======================================================================================================================
+7.Consider telephone book database of N clients. Make use of a hash table implementation to quickly look up client‘s telephone number. Make use of linear probing collision handling techniques.
+
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <list>
+#include <algorithm>
+using namespace std;
+
+const int TABLE_SIZE = 10; // Size of the hash table
+
+// Structure to represent a client
+struct Client {
+    string name;
+    string phone_number;
+    bool is_occupied; // Flag to mark if the slot is occupied (for handling linear probing)
+    
+    Client() : is_occupied(false) {}
+    Client(string name, string phone_number) : name(name), phone_number(phone_number), is_occupied(true) {}
+};
+
+class TelephoneBook {
+private:
+    vector<Client> table; // The hash table
+
+public:
+    TelephoneBook() {
+        table.resize(TABLE_SIZE); // Initialize the hash table with default clients
+    }
+
+    // Hash function to generate an index for a name
+    int hashFunction(const string& name) {
+        int hashValue = 0;
+        for (char c : name) {
+            hashValue += c; // Sum ASCII values of characters
+        }
+        return hashValue % TABLE_SIZE; // Return index within table bounds
+    }
+
+    // Function to insert a client in the hash table
+    void insertClient(const string& name, const string& phone_number) {
+        int index = hashFunction(name);
+        int originalIndex = index;
+        
+        // Handle collisions with linear probing
+        while (table[index].is_occupied) {
+            if (table[index].name == name) {
+                cout << "Client already exists with the name " << name << ". Updating phone number.\n";
+                table[index].phone_number = phone_number; // Update the phone number
+                return;
+            }
+            index = (index + 1) % TABLE_SIZE; // Move to the next slot
+            if (index == originalIndex) {
+                cout << "Hash table is full. Cannot insert the client.\n";
+                return;
+            }
+        }
+        
+        // Insert the new client
+        table[index] = Client(name, phone_number);
+        cout << "Client " << name << " added successfully.\n";
+    }
+
+    // Function to search for a client's phone number by name
+    void searchClient(const string& name) {
+        int index = hashFunction(name);
+        int originalIndex = index;
+        
+        // Handle collisions with linear probing
+        while (table[index].is_occupied) {
+            if (table[index].name == name) {
+                cout << "Phone number for " << name << ": " << table[index].phone_number << "\n";
+                return;
+            }
+            index = (index + 1) % TABLE_SIZE;
+            if (index == originalIndex) {
+                break;
+            }
+        }
+
+        cout << "Client " << name << " not found.\n";
+    }
+
+    // Function to display the contents of the hash table
+    void displayTable() {
+        cout << "Current telephone book database:\n";
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            if (table[i].is_occupied) {
+                cout << "Index " << i << ": " << table[i].name << " - " << table[i].phone_number << "\n";
+            } else {
+                cout << "Index " << i << ": Empty\n";
+            }
+        }
+    }
+};
+
+int main() {
+    TelephoneBook phonebook;
+    int choice;
+    
+    do {
+        cout << "\n--- Telephone Book Menu ---\n";
+        cout << "1. Add Client\n";
+        cout << "2. Search Client by Name\n";
+        cout << "3. Display All Clients\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cin.ignore(); // Clear the newline character left by cin
+        
+        if (choice == 1) {
+            string name, phone_number;
+            cout << "Enter client's name: ";
+            getline(cin, name);
+            cout << "Enter client's phone number: ";
+            getline(cin, phone_number);
+            phonebook.insertClient(name, phone_number);
+
+        } else if (choice == 2) {
+            string name;
+            cout << "Enter client's name to search: ";
+            getline(cin, name);
+            phonebook.searchClient(name);
+
+        } else if (choice == 3) {
+            phonebook.displayTable();
+
+        } else if (choice == 4) {
+            cout << "Exiting program.\n";
+        } else {
+            cout << "Invalid choice. Please try again.\n";
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
+================================================================================================================================
+8. Design a program to implement an Optimal Binary Search Tree (OBST) for a compiler symbol table. The program should efficiently store and retrieve identifiers, constants, and keywords encountered during lexical analysis.
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <map>
+#include <string>
+using namespace std;
+
+// Symbol structure to hold the symbol details
+struct Symbol {
+    string name;
+    int frequency; // Frequency of access (used for OBST optimization)
+
+    Symbol(string name, int frequency) : name(name), frequency(frequency) {}
+};
+
+// Node structure for the Binary Search Tree
+struct TreeNode {
+    Symbol symbol;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(Symbol symbol) : symbol(symbol), left(nullptr), right(nullptr) {}
+};
+
+class OBST {
+private:
+    vector<Symbol> symbols; // List of symbols in the table
+    TreeNode* root; // Root of the tree
+
+    // Recursive function to insert symbols into the OBST based on frequency
+    TreeNode* insert(TreeNode* node, const Symbol& symbol) {
+        if (node == nullptr)
+            return new TreeNode(symbol);
+
+        if (symbol.name < node->symbol.name)
+            node->left = insert(node->left, symbol);
+        else
+            node->right = insert(node->right, symbol);
+
+        return node;
+    }
+
+    // Recursive function to search for a symbol in the OBST
+    TreeNode* search(TreeNode* node, const string& name) {
+        if (node == nullptr || node->symbol.name == name)
+            return node;
+
+        if (name < node->symbol.name)
+            return search(node->left, name);
+        else
+            return search(node->right, name);
+    }
+
+    // In-order traversal to print the tree
+    void inorderTraversal(TreeNode* node) {
+        if (node == nullptr) return;
+        inorderTraversal(node->left);
+        cout << "Symbol: " << node->symbol.name << ", Frequency: " << node->symbol.frequency << endl;
+        inorderTraversal(node->right);
+    }
+
+public:
+    OBST() : root(nullptr) {}
+
+    // Insert a symbol into the OBST
+    void insertSymbol(const string& name, int frequency) {
+        Symbol symbol(name, frequency);
+        root = insert(root, symbol);
+    }
+
+    // Search for a symbol in the OBST
+    bool searchSymbol(const string& name) {
+        TreeNode* result = search(root, name);
+        return result != nullptr;
+    }
+
+    // Print the symbol table using in-order traversal
+    void printSymbolTable() {
+        cout << "Symbol Table:\n";
+        inorderTraversal(root);
+    }
+};
+
+int main() {
+    OBST symbolTable;
+
+    // Inserting symbols with their respective access frequencies
+    symbolTable.insertSymbol("x", 15);
+    symbolTable.insertSymbol("y", 5);
+    symbolTable.insertSymbol("int", 30);
+    symbolTable.insertSymbol("const", 10);
+    symbolTable.insertSymbol("float", 25);
+    symbolTable.insertSymbol("if", 40);
+
+    // Print the symbol table
+    symbolTable.printSymbolTable();
+
+    // Searching for symbols
+    string searchSymbol;
+    cout << "\nEnter symbol to search: ";
+    cin >> searchSymbol;
+
+    if (symbolTable.searchSymbol(searchSymbol)) {
+        cout << searchSymbol << " is found in the symbol table.\n";
+    } else {
+        cout << searchSymbol << " is not found in the symbol table.\n";
+    }
+
+    return 0;
+}==================================================================================================================================================
+9.[10:26 pm, 17/04/2025] Tanvi Pimpale✨: Develop a system for an online bookstore to manage its catalog using binary search trees (BSTs). Allow operations like adding new books, deleting for books by title or author efficiently, and updating book information. Display post oredr
+[10:40 pm, 17/04/2025] Tanvi Pimpale✨: #include <iostream>
+#include <string>
+using namespace std;
+
+// Book structure to store information about each book
+struct Book {
+    string title;
+    string author;
+    double price;
+
+    Book(string t, string a, double p) : title(t), author(a), price(p) {}
+};
+
+// Node structure for the Binary Search Tree (BST)
+struct BSTNode {
+    Book book;
+    BSTNode* left;
+    BSTNode* right;
+
+    BSTNode(Book b) : book(b), left(nullptr), right(nullptr) {}
+};
+
+// Bookstore class that manages the catalog using a BST
+class Bookstore {
+private:
+    BSTNode* root;
+
+    // Helper function to insert a new book into the BST
+    BSTNode* insert(BSTNode* node, Book b) {
+        if (!node)
+            return new BSTNode(b);
+
+        if (b.title < node->book.title)
+            node->left = insert(node->left, b);
+        else if (b.title > node->book.title)
+            node->right = insert(node->right, b);
+        else
+            cout << "Book with title \"" << b.title << "\" already exists.\n";
+
+        return node;
+    }
+
+    // Helper function to find the minimum book node (used in deletion)
+    BSTNode* findMin(BSTNode* node) {
+        while (node && node->left)
+            node = node->left;
+        return node;
+    }
+
+    // Helper function to delete a book by title
+    BSTNode* deleteBookByTitle(BSTNode* node, const string& title) {
+        if (!node)
+            return node;
+
+        // Search for the book to delete
+        if (title < node->book.title)
+            node->left = deleteBookByTitle(node->left, title);
+        else if (title > node->book.title)
+            node->right = deleteBookByTitle(node->right, title);
+        else {
+            // Found the book to delete
+            if (!node->left) {
+                BSTNode* temp = node->right;
+                delete node;
+                return temp;
+            } else if (!node->right) {
+                BSTNode* temp = node->left;
+                delete node;
+                return temp;
+            }
+
+            // Node with two children: get the inorder successor (smallest in the right subtree)
+            BSTNode* temp = findMin(node->right);
+            node->book = temp->book;
+            node->right = deleteBookByTitle(node->right, temp->book.title);
+        }
+        return node;
+    }
+
+    // Helper function to delete a book by author
+    BSTNode* deleteBookByAuthor(BSTNode* node, const string& author) {
+        if (!node)
+            return node;
+
+        if (author < node->book.author)
+            node->left = deleteBookByAuthor(node->left, author);
+        else if (author > node->book.author)
+            node->right = deleteBookByAuthor(node->right, author);
+        else {
+            // Found a book with the same author
+            if (!node->left) {
+                BSTNode* temp = node->right;
+                delete node;
+                return temp;
+            } else if (!node->right) {
+                BSTNode* temp = node->left;
+                delete node;
+                return temp;
+            }
+
+            // Node with two children: get the inorder successor (smallest in the right subtree)
+            BSTNode* temp = findMin(node->right);
+            node->book = temp->book;
+            node->right = deleteBookByAuthor(node->right, temp->book.author);
+        }
+        return node;
+    }
+
+    // Helper function to update book information
+    void updateBookInfo(BSTNode* node, const string& title, double newPrice) {
+        if (!node) return;
+
+        if (node->book.title == title) {
+            node->book.price = newPrice;
+            cout << "Price of book \"" << title << "\" updated to " << newPrice << ".\n";
+            return;
+        } else if (title < node->book.title) {
+            updateBookInfo(node->left, title, newPrice);
+        } else {
+            updateBookInfo(node->right, title, newPrice);
+        }
+    }
+
+    // Helper function for post-order traversal to display the catalog
+    void postOrderTraversal(BSTNode* node) {
+        if (node == nullptr)
+            return;
+        postOrderTraversal(node->left);
+        postOrderTraversal(node->right);
+        cout << "Title: " << node->book.title << ", Author: " << node->book.author
+             << ", Price: $" << node->book.price << endl;
+    }
+
+public:
+    Bookstore() : root(nullptr) {}
+
+    // Public function to add a new book
+    void addBook(const Book& b) {
+        root = insert(root, b);
+    }
+
+    // Public function to delete a book by title
+    void deleteBookByTitle(const string& title) {
+        root = deleteBookByTitle(root, title);
+    }
+
+    // Public function to delete books by author
+    void deleteBookByAuthor(const string& author) {
+        root = deleteBookByAuthor(root, author);
+    }
+
+    // Public function to update book price by title
+    void updateBookPrice(const string& title, double newPrice) {
+        updateBookInfo(root, title, newPrice);
+    }
+
+    // Public function to display the catalog in post-order
+    void displayCatalog() {
+        cout << "\nCatalog (Post-order Traversal):\n";
+        postOrderTraversal(root);
+    }
+};
+
+int main() {
+    Bookstore store;
+    int choice;
+
+    do {
+        cout << "\n--- Online Bookstore Menu ---\n";
+        cout << "1. Add Book\n";
+        cout << "2. Delete Book by Title\n";
+        cout << "3. Delete Books by Author\n";
+        cout << "4. Update Book Price\n";
+        cout << "5. Display Catalog\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cin.ignore();  // Clear newline
+
+        if (choice == 1) {
+            string title, author;
+            double price;
+            cout << "Enter title: ";
+            getline(cin, title);
+            cout << "Enter author: ";
+            getline(cin, author);
+            cout << "Enter price: ";
+            cin >> price;
+            store.addBook(Book(title, author, price));
+
+        } else if (choice == 2) {
+            string title;
+            cout << "Enter title to delete: ";
+            getline(cin, title);
+            store.deleteBookByTitle(title);
+
+        } else if (choice == 3) {
+            string author;
+            cout << "Enter author to delete books by: ";
+            getline(cin, author);
+            store.deleteBookByAuthor(author);
+
+        } else if (choice == 4) {
+            string title;
+            double newPrice;
+            cout << "Enter title to update: ";
+            getline(cin, title);
+            cout << "Enter new price: ";
+            cin >> newPrice;
+            store.updateBookPrice(title, newPrice);
+
+        } else if (choice == 5) {
+            store.displayCatalog();
+
+        } else if (choice == 6) {
+            cout << "Exiting program.\n";
+        } else {
+            cout << "Invalid choice. Please try again.\n";
+        }
+
+    } while (choice != 6);
+
+    return 0;
+}
+==========================================================================================================
+[10:42 pm, 17/04/2025] Tanvi Pimpale✨: C++ program to implement a threaded binary tree and perform five operations on it: insertion,  search, and display preorder
+ #include <iostream>
+using namespace std;
+
+struct Node {
+    int data;
+    Node *left, *right;
+    bool rightThread;
+
+    Node(int val) {
+        data = val;
+        left = right = nullptr;
+        rightThread = false;
+    }
+};
+
+class ThreadedBinaryTree {
+private:
+    Node* root;
+
+public:
+    ThreadedBinaryTree() {
+        root = nullptr;
+    }
+
+    void insert(int key) {
+        Node* ptr = root;
+        Node* parent = nullptr;
+
+        while (ptr != nullptr) {
+            if (key == ptr->data) {
+                cout << "Duplicate key not allowed.\n";
+                return;
+            }
+
+            parent = ptr;
+
+            if (key < ptr->data)
+                ptr = ptr->left;
+            else {
+                if (ptr->rightThread == false)
+                    ptr = ptr->right;
+                else
+                    break;
+            }
+        }
+
+        Node* newNode = new Node(key);
+
+        if (parent == nullptr) {
+            root = newNode;
+        } else if (key < parent->data) {
+            parent->left = newNode;
+            newNode->right = parent;
+            newNode->rightThread = true;
+        } else {
+            newNode->right = parent->right;
+            newNode->rightThread = true;
+            parent->right = newNode;
+            parent->rightThread = false;
+        }
+
+        cout << "Inserted " << key << " successfully.\n";
+    }
+
+    bool search(int key) {
+        Node* ptr = root;
+
+        while (ptr != nullptr) {
+            if (key == ptr->data)
+                return true;
+
+            if (key < ptr->data)
+                ptr = ptr->left;
+            else {
+                if (ptr->rightThread == false)
+                    ptr = ptr->right;
+                else
+                    ptr = nullptr;
+            }
+        }
+        return false;
+    }
+
+    void preorder() {
+        Node* ptr = root;
+
+        while (ptr != nullptr) {
+            cout << ptr->data << " ";
+
+            if (ptr->left != nullptr)
+                ptr = ptr->left;
+            else {
+                while (ptr != nullptr && (ptr->rightThread || ptr->right == nullptr))
+                    ptr = ptr->right;
+                if (ptr != nullptr)
+                    ptr = ptr->right;
+            }
+        }
+    }
+};
+
+int main() {
+    ThreadedBinaryTree tbt;
+    int choice, key;
+
+    do {
+        cout << "\n--- Threaded Binary Tree Menu ---\n";
+        cout << "1. Insert\n2. Search\n3. Preorder Display\n4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1:
+            cout << "Enter value to insert: ";
+            cin >> key;
+            tbt.insert(key);
+            break;
+        case 2:
+            cout << "Enter value to search: ";
+            cin >> key;
+            if (tbt.search(key))
+                cout << "Found.\n";
+            else
+                cout << "Not found.\n";
+            break;
+        case 3:
+            cout << "Preorder traversal: ";
+            tbt.preorder();
+            cout << endl;
+            break;
+        case 4:
+            cout << "Exiting...\n";
+            break;
+        default:
+            cout << "Invalid option.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
+==========================================================================================
+[10:47 pm, 17/04/2025] Tanvi Pimpale✨: Write a C++ Program using Breadth First Traversal  for a user defined Graph.
+ #include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+class Graph {
+private:
+    int V;  // Number of vertices
+    vector<vector<int>> adj;  // Adjacency list
+
+public:
+    Graph(int vertices) {
+        V = vertices;
+        adj.resize(V);
+    }
+
+    void addEdge(int src, int dest) {
+        adj[src].push_back(dest);
+        // For undirected graph, add the reverse edge too
+        // adj[dest].push_back(src);
+    }
+
+    void BFS(int start) {
+        vector<bool> visited(V, false);
+        queue<int> q;
+
+        visited[start] = true;
+        q.push(start);
+
+        cout << "BFS traversal starting from vertex " << start << ": ";
+
+        while (!q.empty()) {
+            int current = q.front();
+            q.pop();
+            cout << current << " ";
+
+            for (int neighbor : adj[current]) {
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    q.push(neighbor);
+                }
+            }
+        }
+
+        cout << endl;
+    }
+};
+
+int main() {
+    int V, E;
+    cout << "Enter number of vertices: ";
+    cin >> V;
+
+    Graph g(V);
+
+    cout << "Enter number of edges: ";
+    cin >> E;
+
+    cout << "Enter edges (source destination):\n";
+    for (int i = 0; i < E; ++i) {
+        int src, dest;
+        cin >> src >> dest;
+        g.addEdge(src, dest);
+    }
+
+    int start;
+    cout << "Enter starting vertex for BFS: ";
+    cin >> start;
+
+    g.BFS(start);
+
+    return 0;
+}
+==============================================================================================================
+[10:57 pm, 17/04/2025] Tanvi Pimpale✨: Write a C++ Program using  Depth First Traversal for a user defined Graph
+[10:57 pm, 17/04/2025] Tanvi Pimpale✨: #include <iostream>
+#include <vector>
+
+using namespace std;
+
+class Graph {
+private:
+    int V; // Number of vertices
+    vector<vector<int>> adj; // Adjacency list
+
+    void DFSUtil(int v, vector<bool>& visited) {
+        visited[v] = true;
+        cout << v << " ";
+
+        for (int neighbor : adj[v]) {
+            if (!visited[neighbor]) {
+                DFSUtil(neighbor, visited);
+            }
+        }
+    }
+
+public:
+    Graph(int vertices) {
+        V = vertices;
+        adj.resize(V);
+    }
+
+    void addEdge(int src, int dest) {
+        adj[src].push_back(dest);
+        // For undirected graph, also add:
+        // adj[dest].push_back(src);
+    }
+
+    void DFS(int start) {
+        vector<bool> visited(V, false);
+        cout << "DFS starting from vertex " << start << ": ";
+        DFSUtil(start, visited);
+        cout << endl;
+    }
+};
+
+int main() {
+    int V, E;
+    cout << "Enter number of vertices: ";
+    cin >> V;
+
+    Graph g(V);
+
+    cout << "Enter number of edges: ";
+    cin >> E;
+
+    cout << "Enter edges (source destination):\n";
+    for (int i = 0; i < E; ++i) {
+        int src, dest;
+        cin >> src >> dest;
+        g.addEdge(src, dest);
+    }
+
+    int startVertex;
+    cout << "Enter starting vertex for DFS: ";
+    cin >> startVertex;
+
+    g.DFS(startVertex);
+
+    return 0;
+}
+========================================================================================================================================
+You are organizing a conference with attendees from different countries. Some attendees can speak Spanish, some can speak German, and some can speak both languages. Write a program to find the union, intersection, and difference of sets.
+
+// Online C++ compiler to run C++ program online
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+const int MAX = 100;
+
+int findIndex(char arr[][30], int n, const char* key) {
+    for (int i = 0; i < n; i++) {
+        if (strcmp(arr[i], key) == 0)
+            return i;
+    }
+    return -1;
+}
+
+int main() {
+    char spanish[MAX][30], german[MAX][30], unionSet[MAX][30], intersectionSet[MAX][30], diffSet[MAX][30];
+    int n1, n2, u = 0, inter = 0, diff = 0;
+
+    cout << "Enter number of Spanish-speaking attendees: ";
+    cin >> n1;
+    cout << "Enter names:\n";
+    for (int i = 0; i < n1; i++) {
+        cin >> spanish[i];
+    }
+
+    cout << "Enter number of German-speaking attendees: ";
+    cin >> n2;
+    cout << "Enter names:\n";
+    for (int i = 0; i < n2; i++) {
+        cin >> german[i];
+    }
+
+    // Union
+    for (int i = 0; i < n1; i++) {
+        strcpy(unionSet[u++], spanish[i]);
+    }
+    for (int i = 0; i < n2; i++) {
+        if (findIndex(spanish, n1, german[i]) == -1) {
+            strcpy(unionSet[u++], german[i]);
+        }
+    }
+
+    // Intersection
+    for (int i = 0; i < n2; i++) {
+        if (findIndex(spanish, n1, german[i]) != -1) {
+            strcpy(intersectionSet[inter++], german[i]);
+        }
+    }
+
+    // Difference (Spanish - German)
+    for (int i = 0; i < n1; i++) {
+        if (findIndex(german, n2, spanish[i]) == -1) {
+            strcpy(diffSet[diff++], spanish[i]);
+        }
+    }
+
+    // Output results
+    cout << "\n--- Union ---\n";
+    for (int i = 0; i < u; i++) {
+        cout << unionSet[i] << " ";
+    }
+
+    cout << "\n\n--- Intersection (Spanish & German) ---\n";
+    for (int i = 0; i < inter; i++) {
+        cout << intersectionSet[i] << " ";
+    }
+
+    cout << "\n\n--- Difference (Spanish only) ---\n";
+    for (int i = 0; i < diff; i++) {
+        cout << diffSet[i] << " ";
+    }
+
+    cout << endl;
+    return 0;
+}
+
+==================================================================================================================
